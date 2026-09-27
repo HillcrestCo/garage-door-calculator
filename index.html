@@ -95,6 +95,11 @@
 
 <main>
   <div class="card">
+    <h2 id="cliH">👤 Nombre del cliente</h2>
+    <input type="text" id="clientInput" placeholder="Nombre del cliente" autocomplete="off">
+  </div>
+
+  <div class="card">
     <h2 id="addrH">📍 Dirección del proyecto</h2>
     <div class="addr-wrap">
       <input type="text" id="addrInput" placeholder="Empieza a escribir la dirección…" autocomplete="off">
@@ -256,6 +261,7 @@ const STRINGS={
 es:{
 appTitle:"Calculadora de Garage Doors",appSub:"Estimado de puertas de garaje · Tus precios se guardan en tu teléfono.",
 addrH:"📍 Dirección del proyecto",addrPh:"Empieza a escribir la dirección…",addrNote:"Toca una sugerencia para usarla. Sale en el PDF del estimado.",
+cliH:"👤 Nombre del cliente",cliPh:"Nombre del cliente",
 doorsH:"🚪 Puertas (cantidad)",doorsNote:"Cantidad de puertas de cada tipo.",
 doorStd1L:"Puerta estándar 1 carro",doorStd2L:"Puerta estándar 2 carros",doorTall1L:"Puerta alta 1 carro",doorTall2L:"Puerta alta 2 carros",
 optH:"⚙️ Opciones",optNote:"Cada opción se calcula sobre la base (suma de las puertas).",
@@ -297,6 +303,7 @@ gabyHandoffCopied:"Texto copiado — pégalo en el chat con Gaby",
 en:{
 appTitle:"Garage Door Calculator",appSub:"Garage door estimate · Your prices stay saved on your phone.",
 addrH:"📍 Project address",addrPh:"Start typing the address…",addrNote:"Tap a suggestion to use it. It appears on the estimate PDF.",
+cliH:"👤 Client name",cliPh:"Client name",
 doorsH:"🚪 Doors (quantity)",doorsNote:"Number of doors of each type.",
 doorStd1L:"Standard 1-car door",doorStd2L:"Standard 2-car door",doorTall1L:"Tall 1-car door",doorTall2L:"Tall 2-car door",
 optH:"⚙️ Options",optNote:"Each option is calculated on the base (sum of the doors).",
@@ -341,7 +348,7 @@ function t(k){const d=STRINGS[lang]||STRINGS.es;return d[k]!==undefined?d[k]:STR
 function setLang(l){lang=l;state.lang=l;save();applyLang();}
 function S(id,key){const e=document.getElementById(id);if(e)e.textContent=t(key);}
 function applyLang(){
-  ["appTitle","appSub","addrH","addrNote","doorsH","doorsNote",
+  ["appTitle","appSub","cliH","addrH","addrNote","doorsH","doorsNote",
    "doorStd1L","doorStd2L","doorTall1L","doorTall2L","optH","optNote",
    "pricesH","doorStd1PL","doorStd2PL","doorTall1PL","doorTall2PL",
    "mWindowsL","mTrimL","mStripL","mStainL","mTwoColorsL","mB2wL",
@@ -352,6 +359,7 @@ function applyLang(){
   const gci=document.getElementById("gabyClientInput"); if(gci) gci.placeholder=t("gabyClientPh");
   const gc=document.getElementById("gabyComment"); if(gc) gc.placeholder=t("gabyCommentPh");
   const ai=document.getElementById("addrInput"); if(ai) ai.placeholder=t("addrPh");
+  const ci=document.getElementById("clientInput"); if(ci) ci.placeholder=t("cliPh");
   document.getElementById("langEs").classList.toggle("on",lang==="es");
   document.getElementById("langEn").classList.toggle("on",lang==="en");
   renderAll();
@@ -480,6 +488,15 @@ function initAddress(){
   document.addEventListener("click",e=>{ if(!e.target.closest||!e.target.closest(".addr-wrap")) list.classList.remove("show"); });
 }
 
+/* ================= Cliente (campo permanente arriba) ================= */
+function initClient(){
+  const inp=$("clientInput");
+  inp.value=state.client||"";
+  inp.addEventListener("input",()=>{
+    state.client=inp.value; save(); renderSummary();
+  });
+}
+
 /* ================= Botones / toast ================= */
 function toast(msg){
   const t=$("toast"); t.textContent=msg; t.classList.add("show");
@@ -498,7 +515,9 @@ function initButtons(){
     state.optWindows=0; state.optTrim=0; state.optStrip=0;
     state.optStain=0; state.optTwoColors=0; state.optB2w=0;
     state.address="";
+    state.client="";
     $("addrInput").value="";
+    $("clientInput").value="";
     $("addrList").classList.remove("show");
     save(); syncInputs(); renderAll();
     toast(t("resetMsg"));
@@ -603,6 +622,7 @@ function openGabyModal(){
 }
 function sendGabyMail(){
   state.client=($("gabyClientInput").value||"").trim(); save();
+  $("clientInput").value=state.client;
   const d=buildHandoff();
   if(!d.client){toast(t("gabyNeedClient"));$("gabyClientInput").focus();return;}
   const href="mailto:"+GABY_MAIL+"?subject="+encodeURIComponent(handoffSubject(d))+"&body="+encodeURIComponent(handoffBody(d));
@@ -613,6 +633,7 @@ function sendGabyMail(){
 }
 function copyGabyText(){
   state.client=($("gabyClientInput").value||"").trim(); save();
+  $("clientInput").value=state.client;
   const d=buildHandoff();
   if(!d.client){toast(t("gabyNeedClient"));$("gabyClientInput").focus();return;}
   const txt=handoffSubject(d)+"\n\n"+handoffBody(d);
@@ -753,6 +774,7 @@ async function sharePdf(){
 /* ================= Inicio ================= */
 renderAll();
 initAddress();
+initClient();
 initButtons();
 syncInputs();
 document.getElementById("langEs").addEventListener("click",()=>setLang("es"));
